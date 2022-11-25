@@ -1,1 +1,0 @@
-web: ginucorn app:main

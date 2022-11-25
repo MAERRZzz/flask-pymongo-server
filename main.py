@@ -10,13 +10,11 @@ def mongodb():
     mongo = pymongo.MongoClient(
         "mongodb+srv://MAERZ:maerz@maerz.snbeycr.mongodb.net/?retryWrites=true&w=majority")
     db = mongo.cepu_qr
-    # print(db)
     return home_page(db)
 
 
 def home_page(db):
     first_name, last_name, email = "Тест", "Тестов", "test@mail.ru"
-    # public_key, private_key =
     user = list(db.user.find({"email": email}))
 
     if not user:
