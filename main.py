@@ -3,18 +3,23 @@ import pymongo
 import rsa
 
 app = Flask(__name__)
+mongo = pymongo.MongoClient(
+    "mongodb+srv://MAERZ:maerz@maerz.snbeycr.mongodb.net/?retryWrites=true&w=majority")
+db = mongo.cepu_qr
 
 
-@app.route("/", methods=["GET", "POST"])
-def mongodb():
-    mongo = pymongo.MongoClient(
-        "mongodb+srv://MAERZ:maerz@maerz.snbeycr.mongodb.net/?retryWrites=true&w=majority")
-    db = mongo.cepu_qr
-    return home_page(db)
+                # НОРМАЛЬНЫЙ ССЫЛКА
+# @app.route("/<string:displayName>/<string:email>/<int:id>/<string:photoUrl>", methods=["GET", "POST"])
+# def home_page(displayName, email, id, photoUrl):
+
+                # ДЛЯ ТЕСТА
+#   http://192.168.2.101:5000/OSMAN@mail.ru/ОСМАН/ОСМАНов
 
 
-def home_page(db):
-    first_name, last_name, email = "Тест", "Тестов", "test@mail.ru"
+@app.route("/<string:email>/<string:first_name>/<string:last_name>", methods=["GET", "POST"])
+def home_page(email, first_name, last_name):
+    print(email)
+    # first_name, last_name, email = "Тест", "Тестов", "test@mail.ru"
     user = list(db.user.find({"email": email}))
 
     if not user:
@@ -24,10 +29,13 @@ def home_page(db):
         private_key = private_key.save_pkcs1().decode('utf-8').replace("-----BEGIN RSA PRIVATE KEY-----", "").replace(
             "-----END RSA PRIVATE KEY-----", "").replace("\n", "")
 
+                # НОРМАЛЬНЫЙ ЗАПРОС
+        # db.user.insert_one({"displayName": displayName, "email": email, "id": id,
+        #                     "photoUrl": photoUrl, "public_key": public_key, "private_key": private_key})
+
         db.user.insert_one({"first_name": first_name, "last_name": last_name, "email": email,
                             "public_key": public_key, "private_key": private_key})
-        user = list(db.user.find({"email": email}))[0]
-        print(f'Записан в БД: {user["email"]}')
+        print(f'Записан в БД: {email}')
     else:
         print(f'Есть в БД:\n{user}')
 
@@ -35,4 +43,4 @@ def home_page(db):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
