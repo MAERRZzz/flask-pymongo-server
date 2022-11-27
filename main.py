@@ -11,7 +11,7 @@ db = mongo.cepu_qr
 @app.route("/<string:displayName>/<string:email>/<string:id>/<path:photoUrl>")
 # @app.route("/")
 def home_page(displayName, email, id, photoUrl): #displayName, email, id, photoUrl
-    user = list(db.user.find({"email": "test"}, {'private_key': 0}))
+    user = list(db.user.find({"email": email}, {'private_key': 0}))
 
     if not user:
         public_key, private_key = rsa.newkeys(1024)
