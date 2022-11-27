@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, jsonify
 import pymongo
 import rsa
 
@@ -8,19 +8,10 @@ mongo = pymongo.MongoClient(
 db = mongo.cepu_qr
 
 
-                # НОРМАЛЬНЫЙ ССЫЛКА
-# @app.route("/<string:displayName>/<string:email>/<int:id>/<string:photoUrl>", methods=["GET", "POST"])
-# def home_page(displayName, email, id, photoUrl):
-
-                # ДЛЯ ТЕСТА
-#   http://192.168.2.101:5000/OSMAN@mail.ru/ОСМАН/ОСМАНов
-
-
-@app.route("/<string:email>/<string:first_name>/<string:last_name>", methods=["GET", "POST"])
-def home_page(email, first_name, last_name):
-    print(email)
-    # first_name, last_name, email = "Тест", "Тестов", "test@mail.ru"
-    user = list(db.user.find({"email": email}))
+@app.route("/<string:displayName>/<string:email>/<string:id>/<path:photoUrl>")
+# @app.route("/")
+def home_page(displayName, email, id, photoUrl): #displayName, email, id, photoUrl
+    user = list(db.user.find({"email": "test"}, {'private_key': 0}))
 
     if not user:
         public_key, private_key = rsa.newkeys(1024)
@@ -29,18 +20,22 @@ def home_page(email, first_name, last_name):
         private_key = private_key.save_pkcs1().decode('utf-8').replace("-----BEGIN RSA PRIVATE KEY-----", "").replace(
             "-----END RSA PRIVATE KEY-----", "").replace("\n", "")
 
-                # НОРМАЛЬНЫЙ ЗАПРОС
-        # db.user.insert_one({"displayName": displayName, "email": email, "id": id,
-        #                     "photoUrl": photoUrl, "public_key": public_key, "private_key": private_key})
+        try:
+            db.user.insert_one({"displayName": displayName, "email": email, "id": id,
+                                "photoUrl": photoUrl, "public_key": public_key, "private_key": private_key})
+            print(f'Записан в БД: {email}')
+            user = list(db.user.find({"email": email}, {'private_key': 0}))[0]
+        except:
+            print(f'Ошибка при записи.')
 
-        db.user.insert_one({"first_name": first_name, "last_name": last_name, "email": email,
-                            "public_key": public_key, "private_key": private_key})
-        print(f'Записан в БД: {email}')
     else:
+        user = user[0]
         print(f'Есть в БД:\n{user}')
 
-    return render_template("index.html", user_email=user)
+    return jsonify({'displayName': user['displayName'], 'email': user['email'], 'photoUrl': user['photoUrl'],
+                    'public_key': user['public_key']})
+    # return "YES"
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=True)
